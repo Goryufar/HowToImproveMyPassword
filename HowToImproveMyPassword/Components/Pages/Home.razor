@@ -1,0 +1,84 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<h3>howtoimprovemypassword.org</h3>
+
+<div class="centerContent">
+    <div class="label-container">
+        <label style="color: #A37E2C;" for="passwordInput">Enter your password:</label>
+        <div style="width: 40px; height: 40px; background-color: @SquareColor; margin-top: 20px;">
+            @outputInt
+        </div>
+    </div>
+
+    <InputText id="passwordInput" @bind-Value="Password" @oninput="CheckPassword" type="@PasswordType" class="large-input" />
+
+    <div class="button-container">
+        <button @onclick="TogglePasswordVisibility">Toggle Visibility</button>
+        <button @onclick="CheckPassword">Check Password</button>
+        <button  @onclick="GetRandPassword"></button>
+    </div>
+</div>
+
+<p style="color: #A37E2C;"> Validation Result: @Result</p>
+
+
+@code {
+    private string Password = string.Empty; // Holds the user's input
+    private string Result = string.Empty;   // Holds the validation result
+    private string PasswordType = "password";
+    private string SquareColor = "green";
+    private int outputInt = 0;
+    private string randomPassword;
+    private async Task CheckPassword()
+    {
+        try
+        {
+            // Call the JS function "passwordchecker.validatePassword"
+            var result = await JS.InvokeAsync<PasswordCheckResult>("passwordchecker.validatePassword", Password);
+           
+            Result = result.outputString;
+            outputInt = result.difficulty;
+            if (result.difficulty < 2)
+            {
+                SquareColor = "red"; // Password is strong (low difficulty)
+            }
+            else if (result.difficulty >= 4 && result.difficulty <= 7)
+            {
+                SquareColor = "yellow"; // Password has medium difficulty
+            }
+            else if (result.difficulty > 7)
+            {
+                SquareColor = "green"; // Password is weak (high difficulty)
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Result = $"Error: {ex.Message}";
+        }
+    }
+    private async Task GetRandPassword()
+    {
+        try
+        {
+            Password = await JS.InvokeAsync<string>("passwordchecker.getRandomPass");
+        }
+        catch (Exception ex)
+        {
+            Result = $"Error: {ex.Message}";
+        }
+    }
+    private void TogglePasswordVisibility()
+    {
+        // Toggle the password type between 'password' and 'text'
+        PasswordType = PasswordType == "password" ? "text" : "password";
+    }
+    public class PasswordCheckResult
+    {
+        public string outputString { get; set; }
+        public int difficulty { get; set; }
+
+    }
+}

@@ -1,0 +1,27 @@
+﻿body {
+    background: linear-gradient(to bottom, #006039, #003b26);
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+h3 {
+    color: #A37E2C
+}
+.centerContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+}
+
+.label-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adds space between label and square */
+}
+
+.button-container {
+    display: flex;
+    gap: 10px; /* Adds space between buttons */
+}
