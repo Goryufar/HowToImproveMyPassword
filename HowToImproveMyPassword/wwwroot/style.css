@@ -1,27 +1,60 @@
 ﻿body {
-    background: linear-gradient(to bottom, #006039, #003b26);
+    background: linear-gradient(to bottom, #004739, #01120F);
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
+    font-size: 20px; /* Increase the base font size */
 }
+
 h3 {
-    color: #A37E2C
+    color: #A37E2C;
+    font-size: 32px; /* Increase heading size */
 }
+
+.custom-button {
+    background-color: #004739; /* Dark green background */
+    color: #A37E2C; /* Gold-like text color */
+    border: 3px solid #023228; /* Thicker border */
+    border-radius: 13px; /* More rounded corners */
+    padding: 4px 8px; /* Add more padding for larger buttons */
+    font-size: 25px; /* Increase button font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, color 0.3s; /* Smooth hover effect */
+}
+
+    .custom-button:hover {
+        background-color: #01594A; /* Slightly lighter green on hover */
+        color: #C8A65B; /* Brighter text color on hover */
+    }
+
+.large-input {
+    padding: 10px; /* Add more padding for a larger input box */
+    font-size: 30px; /* Increase the text size */
+    border: none; /* Remove border */
+    border-radius: 8px; /* Larger rounded corners */
+    outline: none; /* Remove focus outline */
+    width: 400px; /* Increase input width */
+}
+
 .centerContent {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 60vh;
+    height: 70vh; /* Adjust height for larger elements */
 }
 
 .label-container {
     display: flex;
     align-items: center;
-    gap: 10px; /* Adds space between label and square */
+    gap: 5px; /* Increase space between label and square */
 }
 
 .button-container {
     display: flex;
-    gap: 10px; /* Adds space between buttons */
+    gap: 5px; /* Increase space between buttons */
+}
+
+div {
+    font-size: 18px; /* Scale up all text inside divs */
 }

@@ -1,0 +1,58 @@
+﻿body {
+    background: linear-gradient(to bottom, #004739, #01120F);
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+h3 {
+    color: #A37E2C
+}
+.custom-button {
+    background-color: #004739; /* Dark green background */
+    color: #A37E2C; /* Gold-like text color */
+    border: 2px solid #023228; /* Remove border */
+    border-radius: 8px; /* Rounded corners */
+    padding: 2px 4px; /* Add padding */
+    font-size: 16px; /* Adjust font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s, color 0.3s; /* Smooth hover effect */
+}
+.custom-button:hover {
+    background-color: #01594A; /* Slightly lighter green on hover */
+    color: #C8A65B; /* Brighter text color on hover */
+}
+.large-input {
+    padding: 4px; /* Add padding to the input */
+    font-size: 16px; /* Adjust the text size */
+    border: none; /* Dark green border */
+    border-radius: 5px; /* Rounded corners */
+    outline: none; /* Remove focus outline */
+}
+
+
+.centerContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+}
+
+.label-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;  Adds space between label and square 
+}
+
+.button-container {
+   /* display: flex;*/
+    gap: 10px; /* Adds space between buttons */
+}
+/*.top-right-logo {
+    position: absolute;*/ /* Position the image relative to the page */
+    /*top: 10px;*/ /* Distance from the top */
+    /*right: 10px;*/ /* Distance from the right */
+    /*width: 1px;*/ /* Set the width of the image */
+    /*height: 1px;*/ /* Set the height of the image */
+/*}*/

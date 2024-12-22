@@ -1,43 +1,109 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @inject IJSRuntime JS
-
-<h3>howtoimprovemypassword.org</h3>
+@inject NavigationManager NavigationManager
+<p style="font-size:35px; color: #A37E2C;">howtoimprovemypassword.org</p
 
 <div class="centerContent">
     <div class="label-container">
-        <label style="color: #A37E2C;" for="passwordInput">Enter your password:</label>
-        <div style="width: 40px; height: 40px; background-color: @SquareColor; margin-top: 20px;">
-            @outputInt
+         @if (!isMiniGame){
+           @*  <p style="color: #A37E2C;">Enter your password:</p> *@
+            <button class="custom-button" @onclick="() => { GetRandPassword();}">Generate</button>
+            <div style="border: 2px solid #023228; width: 20px; height: 20px; background-color: @SquareColor;  border-radius:8px;">
+            </div>
+            <p style="font-size:20px; color: #A37E2C;">Estimated crack time @crackTime - Seconds </p>
+         }
+    </div>
+   
+     @if (!isMiniGame){
+         <div>
+             <InputText  id="passwordInput" @bind-Value="InputValue" @oninput="HandleInput" type="@PasswordType" class="large-input" placeholder="Type password here" />
+             <button  class="custom-button" @onclick="TogglePasswordVisibility">See Password</button>
         </div>
-    </div>
-
-    <InputText id="passwordInput" @bind-Value="Password" @oninput="CheckPassword" type="@PasswordType" class="large-input" />
-
+     }
+     else if(isGameStarted){
+        <InputText @bind-Value="GuessPassword" class="large-input" placeholder="Type your password again" />
+     }
     <div class="button-container">
-        <button @onclick="TogglePasswordVisibility">Toggle Visibility</button>
-        <button @onclick="CheckPassword">Check Password</button>
-        <button  @onclick="GetRandPassword"></button>
+        @if (!isMiniGame)
+        {
+         
+             <button class="custom-button" @onclick="() => { replacePassWithSuggestion();}">try</button>
+            //<button class="custom-button" @onclick="CheckPassword">Check Password</button>
+
+
+            <button class ="custom-button" @onclick="MiniGameButton">Try MiniGame</button>
+        }
+        else{
+         
+            <button class="custom-button" @onclick="CloseMiniGameButton">Back</button>
+
+            @if (isGameStarted)
+            {
+                <button class="custom-button" @onclick="Subbmit">Subbmit</button>
+            }
+            else {
+                 <button class="custom-button" @onclick="StartGame">Start Game</button>
+            }
+
+            @if (isTimerCompleted)
+            {
+                if (outputGuess == 1){
+                    <p style="color: #A37E2C;">You Won</p>
+                }
+                else if (outputGuess == -1)
+                {
+                    <p style="color: #A37E2C;">You Lost</p>
+                }
+            }
+            <p style="color: #A37E2C;">@remainingSeconds</p>
+            <p style="font-size:15px; color: #A37E2C;">@outputGuess</p>
+        }
     </div>
+     @if (!isMiniGame){
+        <p style="color: #A37E2C;">@LeakCheckMessage</p>
+        <p style="font-size:15px; color: #A37E2C;">Smart Suggestion</p>
+        <p style="font-size:15px; color: #A37E2C;">@SuggestedPass</p>
+     }
 </div>
-
-<p style="color: #A37E2C;"> Validation Result: @Result</p>
-
-
+ @if (!isMiniGame){
+    <p style="font-size:20px;  color: #A37E2C;"> Validation Result: @Result</p>
+ }
 @code {
-    private string Password = string.Empty; // Holds the user's input
+    private string InputValue;
+    // private string Password = string.Empty;
+    private string GuessPassword = string.Empty;
+    private string resultMessage;
     private string Result = string.Empty;   // Holds the validation result
+    private bool isMiniGame = false;
+    private bool isGameStarted = false;
     private string PasswordType = "password";
     private string SquareColor = "green";
+    private string SuggestedPass = "none";
     private int outputInt = 0;
+    private int outputGuess = 0;
+    private long crackTime;
     private string randomPassword;
-    private async Task CheckPassword()
+    private string LeakCheckMessage { get; set; }
+    private string LeakStatusClass { get; set; }
+    private int remainingSeconds = 5;
+    private bool isTimerRunning = false;
+    private bool isTimerCompleted = false;
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        InputValue = e.Value.ToString(); // Update the value
+        await Task.Delay(10); // Slight delay to ensure the value is fully updated
+        await CheckPassword(InputValue); // Call your validation logic
+    }
+    private async Task CheckPassword(string input)
     {
         try
         {
             // Call the JS function "passwordchecker.validatePassword"
-            var result = await JS.InvokeAsync<PasswordCheckResult>("passwordchecker.validatePassword", Password);
-           
+            var result = await JS.InvokeAsync<PasswordCheckResult>("passwordchecker3.validatePassword", input);
+            var crackResult = await JS.InvokeAsync<CrackTimeResult>("passwordchecker3.estimateCrackTime", input);
+            SuggestedPass =  await JS.InvokeAsync<string>("passwordchecker3.smartSuggestion",input);
+            crackTime = crackResult.output;
             Result = result.outputString;
             outputInt = result.difficulty;
             if (result.difficulty < 2)
@@ -53,6 +119,24 @@
                 SquareColor = "green"; // Password is weak (high difficulty)
             }
 
+            var leakCheckResult = await JS.InvokeAsync<PasswordLeakResult>("passwordchecker3.isPasswordLeaked", input);
+            if (leakCheckResult.leaked)
+            {
+                LeakCheckMessage = $"⚠️ Password has been leaked {leakCheckResult.count} times!";
+                LeakStatusClass = "alert-danger";
+            }
+            else if (leakCheckResult.error)
+            {
+                LeakCheckMessage = "❌ Error occurred while checking the password leak.";
+                LeakStatusClass = "alert-warning";
+            }
+            else
+            {
+                LeakCheckMessage = "✅ Password is safe and not found in breaches.";
+                LeakStatusClass = "alert-success";
+            }
+
+
         }
         catch (Exception ex)
         {
@@ -63,22 +147,90 @@
     {
         try
         {
-            Password = await JS.InvokeAsync<string>("passwordchecker.getRandomPass");
+            InputValue = await JS.InvokeAsync<string>("passwordchecker3.getRandomPass");
+
+            CheckPassword(InputValue);
+
         }
         catch (Exception ex)
         {
             Result = $"Error: {ex.Message}";
         }
     }
+    private void MiniGameButton()
+    {
+        isMiniGame = true;
+    }
+    private void CloseMiniGameButton()
+    {
+        isMiniGame = false;
+    }
+    private void Subbmit()
+    {
+        if (InputValue == GuessPassword)
+            outputGuess = 1; // Success
+        else
+            outputGuess = - 1; // Failure
+
+        remainingSeconds = 0; 
+        isGameStarted = false;
+        isTimerRunning = false;
+        isTimerCompleted = true;
+    }
     private void TogglePasswordVisibility()
     {
         // Toggle the password type between 'password' and 'text'
         PasswordType = PasswordType == "password" ? "text" : "password";
+    }
+    private async Task StartGame()
+    {
+        remainingSeconds = 5;
+        isGameStarted = true;
+        isTimerRunning = true;
+        isTimerCompleted = false;
+
+        while (remainingSeconds > 0)
+        {
+            await Task.Delay(1000); // Wait for 1 second
+            remainingSeconds--;
+            StateHasChanged(); // Force UI update
+        }
+
+        isTimerRunning = false;
+        isTimerCompleted = true;
+
+        // Reset the timer after completion
+        await Task.Delay(2000); // Optional: Wait 2 seconds before reset
+        remainingSeconds = 5;
+
+        if (isGameStarted)
+            Subbmit();
+
+        //  isTimerCompleted = false;
+    }
+    public void replacePassWithSuggestion()
+    {
+        InputValue = SuggestedPass;
     }
     public class PasswordCheckResult
     {
         public string outputString { get; set; }
         public int difficulty { get; set; }
 
+    }
+    public class CrackTimeResult
+    {
+        public long output { get; set; } // Matches 'output' returned by JS
+    }
+    private class PasswordLeakResult
+    {
+        public bool leaked { get; set; }
+        public int count { get; set; }
+        public bool error { get; set; }
+    }
+    private class SavedPassword
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 }
