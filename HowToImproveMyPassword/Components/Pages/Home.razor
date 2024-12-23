@@ -22,7 +22,7 @@
      @if (!isMiniGame){
          <div>
              <InputText  id="passwordInput" @bind-Value="InputValue" @oninput="HandleInput" type="@PasswordType" class="large-input" placeholder="Type password here" />
-             <button  class="custom-button" @onclick="TogglePasswordVisibility">See Password</button>
+             <button  class="custom-button" @onclick="TogglePasswordVisibility">@VisibilityText</button>
         </div>
      }
      else {
@@ -61,7 +61,9 @@
     </div>
      @if (!isMiniGame){
         <p style="color: #A37E2C;">@LeakCheckMessage</p>
-        <p style="font-size:15px; color: #A37E2C;">Smart Suggestion - @SuggestedPass</p>
+        if(PasswordType != "password"){
+            <p style="font-size:15px; color: #A37E2C;">Smart Suggestion - @SuggestedPass</p>
+        }
      }
 </div>
  @if (!isMiniGame){
@@ -90,7 +92,8 @@
     private bool isTimerCompleted = false;
     private string gameState = "";
     private int TimeValue = 5;
-    private string DynamicTimeValue = "Default 5 seconds";
+    private string DynamicTimeValue = "";
+    private string VisibilityText = "Show";
     private async Task HandleInput(ChangeEventArgs e)
     {
         InputValue = e.Value.ToString(); 
@@ -191,10 +194,11 @@
     {
         // Toggle the password type between 'password' and 'text'
         PasswordType = PasswordType == "password" ? "text" : "password";
+        VisibilityText = PasswordType == "password" ? "Show" : "Hide";
     }
     private async Task ChangeGameTime(string input)
     {
-       if (int.TryParse(input, out int parsedValue))
+        if (int.TryParse(input, out int parsedValue))
         {
             TimeValue = parsedValue; // Successfully parsed
         }
@@ -205,6 +209,7 @@
     }
     private async Task StartGame()
     {
+        GuessPassword = "";
         gameState = "";
         remainingSeconds = TimeValue;
         isGameStarted = true;
